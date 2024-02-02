@@ -30,7 +30,7 @@ public:
     void onCallPrepared(int type);
     void onCallTimeInfo(int type, int curr, int total);
     void onCallLoad(int type, bool load);
-    void onCallRenderYUV(int width, int height, uint8_t *fy, uint8_t *fu, uint8_t *fv);
+    void onCallRenderYUV(int width, int height, uint8_t *nv12);
 //    void onCallRenderY(int width, int height, uint8_t *fy);
     void onCallRenderNV12(int width, int height, uint8_t *nv12);
 

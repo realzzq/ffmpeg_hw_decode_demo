@@ -19,7 +19,7 @@ CallJava::CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj) {
     }
 
     jmid_parpared = env->GetMethodID(jlz, "onCallPrepared", "()V");
-//    jmid_renderyuv = env->GetMethodID(jlz, "onCallRenderYUV", "(II[B[B[B)V");
+    jmid_renderyuv = env->GetMethodID(jlz, "onCallRenderYUV", "(II[B)V");
 //
     jmid_renderNV12 = env->GetMethodID(jlz, "onCallRenderNV12", "(II[B)V");
 }
@@ -92,7 +92,7 @@ void CallJava::onCallLoad(int type, bool load) {
 
 }
 
-void CallJava::onCallRenderYUV(int width, int height, uint8_t *fy, uint8_t *fu, uint8_t *fv) {
+void CallJava::onCallRenderYUV(int width, int height, uint8_t *nv12) {
 
     JNIEnv *jniEnv;
     if(javaVM->AttachCurrentThread(&jniEnv, 0) != JNI_OK)
@@ -104,20 +104,20 @@ void CallJava::onCallRenderYUV(int width, int height, uint8_t *fy, uint8_t *fu, 
         return;
     }
 
-    jbyteArray y = jniEnv->NewByteArray(width * height);
-    jniEnv->SetByteArrayRegion(y, 0, width * height, reinterpret_cast<const jbyte *>(fy));
+    jbyteArray y = jniEnv->NewByteArray(width * height * 3 / 2);
+    jniEnv->SetByteArrayRegion(y, 0, width * height, reinterpret_cast<const jbyte *>(nv12));
 
-    jbyteArray u = jniEnv->NewByteArray(width * height / 4);
-    jniEnv->SetByteArrayRegion(u, 0, width * height / 4, reinterpret_cast<const jbyte *>(fu));
+//    jbyteArray u = jniEnv->NewByteArray(width * height / 4);
+//    jniEnv->SetByteArrayRegion(u, 0, width * height / 4, reinterpret_cast<const jbyte *>(fu));
+//
+//    jbyteArray v = jniEnv->NewByteArray(width * height / 4);
+//    jniEnv->SetByteArrayRegion(v, 0, width * height / 4, reinterpret_cast<const jbyte *>(fv));
 
-    jbyteArray v = jniEnv->NewByteArray(width * height / 4);
-    jniEnv->SetByteArrayRegion(v, 0, width * height / 4, reinterpret_cast<const jbyte *>(fv));
-
-    jniEnv->CallVoidMethod(jobj, jmid_renderyuv, width, height, y, u, v);
+    jniEnv->CallVoidMethod(jobj, jmid_renderyuv, width, height, y);
 
     jniEnv->DeleteLocalRef(y);
-    jniEnv->DeleteLocalRef(u);
-    jniEnv->DeleteLocalRef(v);
+//    jniEnv->DeleteLocalRef(u);
+//    jniEnv->DeleteLocalRef(v);
     javaVM->DetachCurrentThread();
 }
 

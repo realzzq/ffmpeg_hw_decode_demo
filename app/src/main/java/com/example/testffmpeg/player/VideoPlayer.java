@@ -54,9 +54,9 @@ public class VideoPlayer {
         }
     }
 
-    public void onCallRenderYUV(int width, int height, byte[] y, byte[] u, byte[] v) {
+    public void onCallRenderYUV(int width, int height, byte[] y) {
         if (this.videoOnPreparedListener != null) {
-            videoOnPreparedListener.onCallRenderYUV(width, height, y, u, v);
+            videoOnPreparedListener.onCallRenderYUV(width, height, y);
         }
     }
 

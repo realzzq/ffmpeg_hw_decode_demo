@@ -201,12 +201,12 @@ void VideoDecoder::VideoDecoderThread() {
 //            double diff = video->getFrameDiffTime(avFrame);
 ////            通过diff 计算休眠时间
 //            av_usleep(125000);
-            callJava->onCallRenderYUV(
-                    avCodecContext->width,
-                    avCodecContext->height,
-                    avFrame->data[0],
-                    avFrame->data[1],
-                    avFrame->data[2]);
+//            callJava->onCallRenderYUV(
+//                    avCodecContext->width,
+//                    avCodecContext->height,
+//                    avFrame->data[0],
+//                    avFrame->data[1],
+//                    avFrame->data[2]);
 //            LOGE("回调数据成功 size: %d", queue->getQueueSize());
         } else {
             LOGD("jni", "当前格式是" + avFrame->format);
@@ -234,7 +234,11 @@ void VideoDecoder::send2QueueThread() {
                 } else if (ret < 0) {
                     break;
                 }
-//                YUV2NV12(avFrame);
+//                callJava->onCallRenderYUV(
+//                        avCodecContext->width,
+//                        avCodecContext->height,
+//                        avFrame->data[0]);
+                YUV2NV12(avFrame);
 //                LOGD("avframe: %d", avFrame->height);
                 fps_count++;
             }
@@ -280,7 +284,7 @@ int VideoDecoder::YUV2NV12(AVFrame *frame) {
     callJava->onCallRenderYUV(
             avCodecContext->width,
             avCodecContext->height,
-            buf, u, v);
+            buf);
     return 0;
 }
 

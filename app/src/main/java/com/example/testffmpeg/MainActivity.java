@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCallRenderYUV(int width, int height, byte[] y, byte[] u, byte[] v) {
+            public void onCallRenderYUV(int width, int height, byte[] y) {
                 Log.i("MainActivity", "有数据渲染成功！  " + y.length);
             }
 
