@@ -6,6 +6,7 @@
 
 #include <thread>
 #include <android/native_window_jni.h>
+#include <libswscale/swscale.h>
 
 enum AVPixelFormat (*swtt)(struct AVCodecContext *s, const enum AVPixelFormat *fmt);
 
@@ -27,7 +28,7 @@ void VideoDecoder::statistic_fps() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
     }
 }
-void VideoDecoder::initVideoDecoder(jobject surface) {
+void VideoDecoder::initVideoDecoder() {
 
 
     avformat_network_init();
@@ -149,8 +150,8 @@ void VideoDecoder::initVideoDecoder(jobject surface) {
     callJava->onCallPrepared(CHILD_THREAD);
 }
 
-void VideoDecoder::prepared(JNIEnv *env, jobject surface) {
-    std::thread initVideoDecode(&VideoDecoder::initVideoDecoder, this, surface);
+void VideoDecoder::prepared() {
+    std::thread initVideoDecode(&VideoDecoder::initVideoDecoder, this);
     initVideoDecode.join();
 }
 
@@ -234,6 +235,12 @@ void VideoDecoder::send2QueueThread() {
                 } else if (ret < 0) {
                     break;
                 }
+//                if (AVPixelFormat::AV_PIX_FMT_YUV420P == avFrame->format) {
+//                    LOGD("是420p");
+////                    sws_getContext();
+//                }  else {
+//                    LOGD("是%d格式", avFrame->format);
+//                }
 //                callJava->onCallRenderYUV(
 //                        avCodecContext->width,
 //                        avCodecContext->height,
@@ -252,35 +259,26 @@ void VideoDecoder::send2QueueThread() {
 int VideoDecoder::YUV2NV12(AVFrame *frame) {
     int width = frame->width;
     int height = frame->height;
+    // 计算NV21格式数据的大小
+    int frameSize = width * height;
+    int uvSize = frameSize / 4;
+    int nv21Size = frameSize + uvSize * 2;
     if (buf == nullptr) {
-        buf = new uint8_t[width * height * 3 / 2];
+        buf = new uint8_t[nv21Size];
     }
-// 复制Y分量
-    memcpy(buf, frame->data[0], frame->linesize[0] * height);
 
-// 复制U和V分量（交错复制）
-    uint8_t* dstU = buf + frame->linesize[0] * height;
-    uint8_t* dstV = dstU + 1;
-    uint8_t* srcU = frame->data[1];
-    uint8_t* srcV = frame->data[2];
-    int uvHeight = height / 2;  // U和V分量的高度是原始图像高度的一半
+    uint8_t* yData = frame->data[0];
+    uint8_t* uData = frame->data[1];
+    uint8_t* vData = frame->data[2];
 
-    for (int i = 0; i < uvHeight; i++) {
-        for (int j = 0; j < width / 2; j++) {
-            *dstU = *srcU;
-            *dstV = *srcV;
-            dstU += 2;
-            dstV += 2;
-            srcU++;
-            srcV++;
-        }
-        dstU += frame->linesize[1] - width / 2 * 2;
-        dstV += frame->linesize[1] - width / 2 * 2;
-        srcU += frame->linesize[1] - width / 2;
-        srcV += frame->linesize[1] - width / 2;
+// 将Y分量的数据复制到nv21Data数组中
+    std::memcpy(buf, yData, frameSize);
+
+//// 将U和V分量的数据交错复制到nv21Data数组中
+    for (int i = 0; i < uvSize; i++) {
+        buf[frameSize + i * 2] = vData[i];
+        buf[frameSize + i * 2 + 1] = uData[i];
     }
-    uint8_t* u = &buf[4];
-    uint8_t* v = &buf[6];
     callJava->onCallRenderYUV(
             avCodecContext->width,
             avCodecContext->height,

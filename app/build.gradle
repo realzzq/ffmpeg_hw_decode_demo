@@ -39,6 +39,9 @@ android {
         main {
             //将依赖库打进apk,否则可能出现找不到库
             jniLibs.srcDirs = ['libs']
+            java {
+                srcDirs = ['src/main/java']
+            }
         }
     }
 }

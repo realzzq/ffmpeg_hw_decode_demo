@@ -1,0 +1,68 @@
+apply plugin: 'com.android.library'
+
+android {
+
+    compileSdkVersion 33
+    buildToolsVersion "33.0.1"
+
+
+    defaultConfig {
+        minSdkVersion 19
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles 'consumer-rules.pro'
+
+        externalNativeBuild {
+            cmake {
+                cppFlags ""
+            }
+            // abiFilters
+            ndk {
+                abiFilters "arm64-v8a"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/CMakeLists.txt"
+            version "3.10.2"
+        }
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+
+    implementation 'androidx.appcompat:appcompat:1.0.2'
+
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'androidx.test:runner:1.1.1'
+    androidTestImplementation 'androidx.test.espresso:espresso-core:3.1.1'
+}
+
+//task renameClassesJar(type: Copy) {
+//    // 设置任务的输入路径，即 classes.jar 文件所在的目录
+//    from("${buildDir}/outputs/packaged-classes/debug")
+//
+//    // 设置任务的输出路径，即重命名后的 aaa.jar 的输出目录
+//    into("${buildDir}/outputs/renamed-jars")
+//
+//    // 将 classes.jar 重命名为 aaa.jar
+//    rename { String fileName ->
+//        if (fileName == 'classes.jar') {
+//            'aaa.jar'
+//        } else {
+//            fileName
+//        }
+//    }
+//}

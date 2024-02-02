@@ -4,6 +4,14 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.ImageFormat;
+import android.graphics.Matrix;
+import android.graphics.Rect;
+import android.graphics.YuvImage;
 import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Bundle;
@@ -19,11 +27,13 @@ import android.widget.TextView;
 import com.example.testffmpeg.listener.VideoOnPreparedListener;
 import com.example.testffmpeg.player.VideoPlayer;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 
 public class MainActivity extends AppCompatActivity {
     Surface surface;
     private VideoPlayer videoPlayer;
+    SurfaceView surfaceView;
     static {
         System.loadLibrary("ffmpegDecode");
     }
@@ -37,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 //        MediaCodec mediaCodec= MediaCodec.createByCodecName("video/avc");
 //        mediaCodec.start();
 
-        SurfaceView surfaceView = (SurfaceView) findViewById(R.id.surface);
+        surfaceView = (SurfaceView) findViewById(R.id.surface);
         exit = findViewById(R.id.exit);
         final SurfaceHolder surfaceViewHolder = surfaceView.getHolder();
         exit.setOnClickListener(new View.OnClickListener() {
@@ -83,17 +93,33 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onCallRenderYUV(int width, int height, byte[] y) {
-                Log.i("MainActivity", "有数据渲染成功！  " + y.length);
-            }
+            public void onCallRenderYUV(int width, int height, byte[] data) {
+                SurfaceHolder holder = surfaceView.getHolder();
+                Canvas canvas = holder.lockCanvas();
 
-            @Override
-            public void onCallRenderNV12(int width, int height, byte[] nv12) {
-                Log.i("MainActivity", "有数据渲染成功！  " + nv12.length);
+                // 清空画布
+                canvas.drawColor(Color.BLACK);
+
+                // 将YUV数据转换为位图
+                YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, outputStream);
+                byte[] jpegData = outputStream.toByteArray();
+                Bitmap bitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
+//                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
+                // 缩放位图以适应SurfaceView的大小
+                float scaleFactor = Math.min((float) canvas.getWidth() / bitmap.getWidth(), (float) canvas.getHeight() / bitmap.getHeight());
+                Matrix matrix = new Matrix();
+                matrix.postScale(scaleFactor, scaleFactor);
+                Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+                // 渲染位图
+                canvas.drawBitmap(scaledBitmap, 0, 0, null);
+
+                holder.unlockCanvasAndPost(canvas);
             }
 
         });
-        videoPlayer.prepared(surface);
+        videoPlayer.prepared();
     }
 
     public void exit(View view) {

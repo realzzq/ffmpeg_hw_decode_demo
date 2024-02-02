@@ -35,7 +35,7 @@ public class VideoPlayer {
 
     private native void n_start();
 
-    public void prepared(final Surface surface) {
+    public void prepared() {
         if (TextUtils.isEmpty(path)) {
             Log.e("VideoPlayer", "path 不能为空");
             return;
@@ -43,7 +43,7 @@ public class VideoPlayer {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                n_prepared(path, surface);
+                n_prepared(path);
             }
         }).start();
     }
@@ -54,21 +54,10 @@ public class VideoPlayer {
         }
     }
 
-    public void onCallRenderYUV(int width, int height, byte[] y) {
+    public void onCallRenderYUV(int width, int height, byte[] data) {
         if (this.videoOnPreparedListener != null) {
-            videoOnPreparedListener.onCallRenderYUV(width, height, y);
+            videoOnPreparedListener.onCallRenderYUV(width, height, data);
         }
     }
-
-    public void onCallRenderNV12(int width, int height, byte[] nv12) {
-        if (this.videoOnPreparedListener != null) {
-            videoOnPreparedListener.onCallRenderNV12(width, height, nv12);
-        }
-    }
-    public void onCallRenderY(int width, int height, byte[] y) {
-        if (this.videoOnPreparedListener != null) {
-            videoOnPreparedListener.onCallRenderNV12(width, height, y);
-        }
-    }
-    public native void n_prepared(String path, Surface surface);
+    public native void n_prepared(String path);
 }
