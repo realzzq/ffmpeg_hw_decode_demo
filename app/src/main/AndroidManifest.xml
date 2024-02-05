@@ -12,7 +12,7 @@
         android:supportsRtl="true"
 
         android:theme="@style/AppTheme">
-        <activity android:exported="true" android:name=".MainActivity">
+        <activity android:exported="true" android:name="com.eutroeye.csbox.player.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

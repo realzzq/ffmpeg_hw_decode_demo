@@ -22,6 +22,7 @@ extern "C" {
 class VideoDecoder {
 
 private:
+    bool firstTest = true;
     bool exit = false;
     uint8_t *buf;
     int videoindex = -1;

@@ -235,6 +235,7 @@ void VideoDecoder::send2QueueThread() {
                 } else if (ret < 0) {
                     break;
                 }
+                LOGD("时间戳：%ld", avFrame->pts);
 //                if (AVPixelFormat::AV_PIX_FMT_YUV420P == avFrame->format) {
 //                    LOGD("是420p");
 ////                    sws_getContext();
@@ -274,11 +275,22 @@ int VideoDecoder::YUV2NV12(AVFrame *frame) {
 // 将Y分量的数据复制到nv21Data数组中
     std::memcpy(buf, yData, frameSize);
 
-//// 将U和V分量的数据交错复制到nv21Data数组中
+// 将U和V分量的数据交错复制到nv21Data数组中
     for (int i = 0; i < uvSize; i++) {
         buf[frameSize + i * 2] = vData[i];
         buf[frameSize + i * 2 + 1] = uData[i];
     }
+
+    if (firstTest) {
+        FILE* pYUV_file = fopen("/sdcard/1.yuv", "wb");
+        if (pYUV_file == NULL) {
+            LOGD("create file handle error");
+        }
+        fwrite(buf, 1, nv21Size, pYUV_file);
+        fclose(pYUV_file);
+        firstTest = false;
+    }
+
     callJava->onCallRenderYUV(
             avCodecContext->width,
             avCodecContext->height,

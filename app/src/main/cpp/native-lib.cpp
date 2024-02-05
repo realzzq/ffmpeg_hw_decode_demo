@@ -344,7 +344,7 @@ Java_com_example_testffmpeg_MainActivity_exit(JNIEnv *env, jobject thiz) {
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testffmpeg_player_VideoPlayer_n_1prepared(JNIEnv *env, jobject thiz, jstring path) {
+Java_com_eutroeye_csbox_player_VideoPlayer_n_1prepared(JNIEnv *env, jobject thiz, jstring path) {
     const char* _path = env->GetStringUTFChars(path, 0);
     if (videoDecoder == nullptr) {
         if (callJava == nullptr) {
@@ -353,10 +353,9 @@ Java_com_example_testffmpeg_player_VideoPlayer_n_1prepared(JNIEnv *env, jobject 
         videoDecoder = new VideoDecoder(callJava, _path);
         videoDecoder->prepared();
     }
-}
-extern "C"
+}extern "C"
 JNIEXPORT void JNICALL
-Java_com_example_testffmpeg_player_VideoPlayer_n_1start(JNIEnv *env, jobject thiz) {
+Java_com_eutroeye_csbox_player_VideoPlayer_n_1start(JNIEnv *env, jobject thiz) {
     if (videoDecoder != nullptr) {
         videoDecoder->start();
     }
