@@ -7,6 +7,7 @@
 #include <thread>
 #include <android/native_window_jni.h>
 #include <libswscale/swscale.h>
+#include "libyuv.h"
 
 enum AVPixelFormat (*swtt)(struct AVCodecContext *s, const enum AVPixelFormat *fmt);
 
@@ -235,7 +236,7 @@ void VideoDecoder::send2QueueThread() {
                 } else if (ret < 0) {
                     break;
                 }
-                LOGD("时间戳：%ld", avFrame->pts);
+//                LOGD("时间戳：%ld", avFrame->pts);
 //                if (AVPixelFormat::AV_PIX_FMT_YUV420P == avFrame->format) {
 //                    LOGD("是420p");
 ////                    sws_getContext();
@@ -257,9 +258,11 @@ void VideoDecoder::send2QueueThread() {
     av_frame_unref(avFrame);
 }
 
-int VideoDecoder::YUV2NV12(AVFrame *frame) {
-    int width = frame->width;
-    int height = frame->height;
+int VideoDecoder::YUV2NV12(AVFrame *srcFrame) {
+
+
+    int width = srcFrame->width;
+    int height = srcFrame->height;
     // 计算NV21格式数据的大小
     int frameSize = width * height;
     int uvSize = frameSize / 4;
@@ -267,20 +270,37 @@ int VideoDecoder::YUV2NV12(AVFrame *frame) {
     if (buf == nullptr) {
         buf = new uint8_t[nv21Size];
     }
-
-    uint8_t* yData = frame->data[0];
-    uint8_t* uData = frame->data[1];
-    uint8_t* vData = frame->data[2];
-
-// 将Y分量的数据复制到nv21Data数组中
-    std::memcpy(buf, yData, frameSize);
-
-// 将U和V分量的数据交错复制到nv21Data数组中
-    for (int i = 0; i < uvSize; i++) {
-        buf[frameSize + i * 2] = vData[i];
-        buf[frameSize + i * 2 + 1] = uData[i];
-    }
-
+    libyuv::I420ToNV21(srcFrame->data[0], srcFrame->linesize[0],
+                       srcFrame->data[1], srcFrame->linesize[1],
+                       srcFrame->data[2], srcFrame->linesize[2],
+                       buf, width, buf + width * height, width, width, height
+                       );
+//    // 获取源 AVFrame 的 Y、U、V 数据指针和行大小
+//    uint8_t* srcY = srcFrame->data[0];
+//    uint8_t* srcU = srcFrame->data[1];
+//    uint8_t* srcV = srcFrame->data[2];
+//    int srcStrideY = srcFrame->linesize[0];
+//    int srcStrideU = srcFrame->linesize[1];
+//    int srcStrideV = srcFrame->linesize[2];
+//
+//    // 获取目标 NV21 数据缓冲区的 Y、UV 数据指针和行大小
+//    uint8_t* dstY = buf;
+//    uint8_t* dstUV = buf + width * height;
+//    int dstStrideY = width;
+//    int dstStrideUV = width;
+//
+//    // 将 Y 数据复制到目标缓冲区
+//    for (int i = 0; i < height; i++) {
+//        memcpy(dstY + i * dstStrideY, srcY + i * srcStrideY, width);
+//    }
+//
+//    // 将 U、V 数据交错复制到目标缓冲区
+//    for (int i = 0; i < height / 2; i++) {
+//        for (int j = 0; j < width / 2; j++) {
+//            dstUV[i * dstStrideUV + j * 2] = srcU[i * srcStrideU + j];
+//            dstUV[i * dstStrideUV + j * 2 + 1] = srcV[i * srcStrideV + j];
+//        }
+//    }
     if (firstTest) {
         FILE* pYUV_file = fopen("/sdcard/1.yuv", "wb");
         if (pYUV_file == NULL) {

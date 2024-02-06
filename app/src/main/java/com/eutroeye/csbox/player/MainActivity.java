@@ -56,11 +56,6 @@ public class MainActivity extends AppCompatActivity {
 
             // 清空画布
             canvas.drawColor(Color.BLACK);
-
-            // 将YUV数据转换为位图
-            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, outputStream);
             if (test) {
                 File file = new File("/sdcard/2.yuv");
                 FileOutputStream fileOutputStream;
@@ -73,11 +68,18 @@ public class MainActivity extends AppCompatActivity {
                 }
                 test = false;
             }
+            // 将YUV数据转换为位图
+            YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, outputStream);
+
             byte[] jpegData = outputStream.toByteArray();
             Bitmap bitmap = BitmapFactory.decodeByteArray(jpegData, 0, jpegData.length);
 //                Bitmap bitmap = BitmapFactory.decodeByteArray(data, 0, data.length);
             // 缩放位图以适应SurfaceView的大小
-            float scaleFactor = Math.min((float) canvas.getWidth() / bitmap.getWidth(), (float) canvas.getHeight() / bitmap.getHeight());
+//            float scaleFactor = (float)(canvas.getWidth() / bitmap.getWidth());
+            float scaleFactor = 0.75f;
+//            System.out.println("canvas.getWidth():" + canvas.getWidth() + "scaleFactor: " + scaleFactor + "bitmap.getWidth()" + bitmap.getWidth());
             Matrix matrix = new Matrix();
             matrix.postScale(scaleFactor, scaleFactor);
             Bitmap scaledBitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);

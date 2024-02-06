@@ -105,7 +105,7 @@ void CallJava::onCallRenderYUV(int width, int height, uint8_t *nv12) {
     }
 
     jbyteArray y = jniEnv->NewByteArray(width * height * 3 / 2);
-    jniEnv->SetByteArrayRegion(y, 0, width * height, reinterpret_cast<const jbyte *>(nv12));
+    jniEnv->SetByteArrayRegion(y, 0, width * height * 3 / 2, reinterpret_cast<const jbyte *>(nv12));
 
 //    jbyteArray u = jniEnv->NewByteArray(width * height / 4);
 //    jniEnv->SetByteArrayRegion(u, 0, width * height / 4, reinterpret_cast<const jbyte *>(fu));

@@ -17,12 +17,14 @@ extern "C" {
 #include <libavformat/avformat.h>
 #include <libavutil/hwcontext.h>
 #include <libavcodec/avcodec.h>
+#include <libswscale/swscale.h>
 };
 
 class VideoDecoder {
 
 private:
     bool firstTest = true;
+    SwsContext * swsContext;
     bool exit = false;
     uint8_t *buf;
     int videoindex = -1;

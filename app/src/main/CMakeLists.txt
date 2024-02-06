@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 
 # 引入FFmpeg的头文件
 include_directories(${CMAKE_SOURCE_DIR}/cpp/ffmpeg_include)
+include_directories(${CMAKE_SOURCE_DIR}/cpp/yuv_include)
 get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 get_filename_component(PARENT_DIR1 ${PARENT_DIR} DIRECTORY)
 # 动态链接库或静态链接库的搜索路径
@@ -30,6 +31,7 @@ add_library(
 target_link_libraries( #目标库
         ffmpegDecode
 
+        yuv
         # 把ffmpeg的动态库依赖进来
         avformat
         avcodec
