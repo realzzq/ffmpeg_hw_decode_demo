@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
+
+
 # 引入FFmpeg的头文件
 include_directories(${CMAKE_SOURCE_DIR}/cpp/ffmpeg_include)
 include_directories(${CMAKE_SOURCE_DIR}/cpp/yuv_include)
@@ -31,7 +33,6 @@ add_library(
 target_link_libraries( #目标库
         ffmpegDecode
 
-        yuv
         # 把ffmpeg的动态库依赖进来
         avformat
         avcodec
@@ -43,3 +44,5 @@ target_link_libraries( #目标库
         # NDK中的log库
         log )
 
+target_compile_options(ffmpegDecode PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+set_target_properties(ffmpegDecode PROPERTIES LINK_FLAGS -fsanitize=address)

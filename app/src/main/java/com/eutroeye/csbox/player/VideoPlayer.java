@@ -15,6 +15,7 @@ public class VideoPlayer {
 
     private CodecedOutListener codecedOutListener;
 
+    Boolean isSecond = false;
     public void setVideoOnPreparedListener(CodecedOutListener codecedOutListener) {
         this.codecedOutListener = codecedOutListener;
     }
@@ -47,9 +48,9 @@ public class VideoPlayer {
         }).start();
     }
 
-    public void onCallPrepared() {
+    public void onCallPrepared(String mime_type, int width, int height) {
         if (this.codecedOutListener != null) {
-            System.out.println("ffmpeg准备成功");
+            System.out.println("ffmpeg准备成功, width: " + width);
             this.start();
         }
     }
@@ -60,5 +61,11 @@ public class VideoPlayer {
                     2, data, width, height, System.currentTimeMillis());
         }
     }
+    public void onGetNALU(int len, byte[] data) {
+        if (this.codecedOutListener != null) {
+            System.out.println("获取到了NALU数据, height: " + len);
+        }
+    }
+
     public native void n_prepared(String path);
 }

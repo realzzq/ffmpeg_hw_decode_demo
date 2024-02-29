@@ -11,6 +11,7 @@
 #include "utils/const.h"
 #include "utils/CallJava.h"
 #include "ThreadSafeQueue.h"
+#include <string>
 
 extern "C" {
 #include <libavutil/time.h>
@@ -23,8 +24,7 @@ extern "C" {
 class VideoDecoder {
 
 private:
-    bool firstTest = true;
-    SwsContext * swsContext;
+    int testSize;
     bool exit = false;
     uint8_t *buf;
     int videoindex = -1;
@@ -44,6 +44,7 @@ private:
     void VideoDecoderThread();
     void send2QueueThread();
     int YUV2NV12(AVFrame* frame);
+    int callNALU(AVPacket* avPacket);
     ~VideoDecoder();
 public:
     VideoDecoder(CallJava* callJava, const char* url);

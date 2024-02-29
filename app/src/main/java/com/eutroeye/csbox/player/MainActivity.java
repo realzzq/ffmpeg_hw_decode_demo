@@ -3,6 +3,8 @@ package com.eutroeye.csbox.player;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.Manifest;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -16,6 +18,7 @@ import android.media.MediaCodec;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.text.format.Formatter;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -44,9 +47,11 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    Context context = this;
     Boolean test = true;
     Surface surface;
     private VideoPlayer videoPlayer;
+    private VideoPlayer videoPlayer2;
     SurfaceView surfaceView;
     CodecedOutListener codecedOutListener = new CodecedOutListener() {
         @Override
@@ -56,18 +61,18 @@ public class MainActivity extends AppCompatActivity {
 
             // 清空画布
             canvas.drawColor(Color.BLACK);
-            if (test) {
-                File file = new File("/sdcard/2.yuv");
-                FileOutputStream fileOutputStream;
-                try {
-                    fileOutputStream = new FileOutputStream(file);
-                    fileOutputStream.write(data);
-                    fileOutputStream.flush();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                test = false;
-            }
+//            if (test) {
+//                File file = new File("/sdcard/2.yuv");
+//                FileOutputStream fileOutputStream;
+//                try {
+//                    fileOutputStream = new FileOutputStream(file);
+//                    fileOutputStream.write(data);
+//                    fileOutputStream.flush();
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//                test = false;
+//            }
             // 将YUV数据转换为位图
             YuvImage yuvImage = new YuvImage(data, ImageFormat.NV21, width, height, null);
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -101,10 +106,36 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         videoPlayer = new VideoPlayer("rtsp://admin:Hik12345@192.168.1.83:554/h264/ch1/main/av_stream");
+        videoPlayer2 = new VideoPlayer("rtsp://admin:Hik12345@192.168.1.82:554/h264/ch1/main/av_stream");
         checkPermission();
 //        MediaCodec mediaCodec= MediaCodec.createByCodecName("video/avc");
 //        mediaCodec.start();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+                ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+                activityManager.getMemoryInfo(memoryInfo);
 
+                long totalMemory = memoryInfo.totalMem;
+                long availableMemory = memoryInfo.availMem;
+
+// 将字节转换为可读的格式
+                String totalMemoryStr = Formatter.formatFileSize(context, totalMemory);
+                String availableMemoryStr = Formatter.formatFileSize(context, availableMemory);
+
+
+                while (true) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+//                    Log.d("Memory", "Total Memory: " + totalMemoryStr);
+                    Log.d("Memory", "Available Memory: " + availableMemoryStr);
+                }
+            }
+        }).start();
         surfaceView = (SurfaceView) findViewById(R.id.surface);
         exit = findViewById(R.id.exit);
         final SurfaceHolder surfaceViewHolder = surfaceView.getHolder();
@@ -151,6 +182,14 @@ public class MainActivity extends AppCompatActivity {
 //        play(folderurl, surface);
         videoPlayer.setVideoOnPreparedListener(codecedOutListener);
         videoPlayer.prepared();
+
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        videoPlayer2.setVideoOnPreparedListener(codecedOutListener);
+        videoPlayer2.prepared();
     }
 
     public void exit(View view) {

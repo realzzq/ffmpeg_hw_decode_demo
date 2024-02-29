@@ -7,6 +7,7 @@
 #include <deque>
 #include <memory>
 
+
 extern "C"
 {
 #include "libavcodec/avcodec.h"
@@ -22,10 +23,13 @@ extern "C"
 #include "utils/const.h"
 #include "utils/CallJava.h"
 
-
+bool isVD1Begin = false;
 VideoDecoder *videoDecoder = nullptr;
+VideoDecoder *videoDecoder2 = nullptr;
 CallJava* callJava = nullptr;
+CallJava* callJava2 = nullptr;
 _JavaVM* javaVm = nullptr;
+_JavaVM* javaVm2 = nullptr;
 
 int g_exit = 0;
 //int multi_thread(double frame_rate, int numBytes, int height, int video_index);
@@ -39,7 +43,6 @@ struct AVFrameDeleter {
         av_frame_free(&frame);
     }
 };
-std::mutex mutex;
 std::condition_variable conditionVariable;
 std::deque<std::unique_ptr<AVFrame, AVFrameDeleter>> deque;
 
@@ -52,7 +55,7 @@ JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM *vm, void *reserved)
 {
     jint result = -1;
     javaVm = vm;
-    JNIEnv *env;
+    JNIEnv *env = nullptr;
     if(vm->GetEnv((void **) &env, JNI_VERSION_1_4) != JNI_OK)
     {
 
@@ -78,30 +81,30 @@ struct SwsContext *swsContext;
 uint8_t *outbuffer;
 AVPixelFormat get_hw_format(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
 void render(double frame_rate, int numBytes, int height) {
-    while (1) {
-        std::unique_lock<std::mutex> lock(mutex);
-        conditionVariable.wait(lock, [](){ return !deque.empty(); });
-        AVFrame* cur_frame = deque.front().get();
-        deque.pop_front();
-        if (ANativeWindow_lock(nativeWindow, &windowBuffer, NULL) < 0) {
-            LOGD("cannot lock window");
-        } else {
-            sws_scale(swsContext, cur_frame->data, cur_frame->linesize, 0, avCodecContext->height,
-                      rgbFrame->data, rgbFrame->linesize);
-            uint8_t *dst = (uint8_t *) windowBuffer.bits;
-            for (int h = 0; h < height; h++)
-            {
-                memcpy(dst + h * windowBuffer.stride * 4,
-                       outbuffer + h * rgbFrame->linesize[0],
-                       rgbFrame->linesize[0]);
-            }
-        }
-            double delay = 1.0 / frame_rate;
-            int delayMs = std::round(delay * 1000);
-            av_usleep(delayMs * 1000);
-//        av_usleep(33 * 1000);
-        ANativeWindow_unlockAndPost(nativeWindow);
-    }
+//    while (1) {
+//        std::unique_lock<std::mutex> lock(mutex);
+//        conditionVariable.wait(lock, [](){ return !deque.empty(); });
+//        AVFrame* cur_frame = deque.front().get();
+//        deque.pop_front();
+//        if (ANativeWindow_lock(nativeWindow, &windowBuffer, NULL) < 0) {
+//            LOGD("cannot lock window");
+//        } else {
+//            sws_scale(swsContext, cur_frame->data, cur_frame->linesize, 0, avCodecContext->height,
+//                      rgbFrame->data, rgbFrame->linesize);
+//            uint8_t *dst = (uint8_t *) windowBuffer.bits;
+//            for (int h = 0; h < height; h++)
+//            {
+//                memcpy(dst + h * windowBuffer.stride * 4,
+//                       outbuffer + h * rgbFrame->linesize[0],
+//                       rgbFrame->linesize[0]);
+//            }
+//        }
+//            double delay = 1.0 / frame_rate;
+//            int delayMs = std::round(delay * 1000);
+//            av_usleep(delayMs * 1000);
+////        av_usleep(33 * 1000);
+//        ANativeWindow_unlockAndPost(nativeWindow);
+//    }
 
 }
 //extern "C"
@@ -345,18 +348,33 @@ Java_com_example_testffmpeg_MainActivity_exit(JNIEnv *env, jobject thiz) {
 extern "C"
 JNIEXPORT void JNICALL
 Java_com_eutroeye_csbox_player_VideoPlayer_n_1prepared(JNIEnv *env, jobject thiz, jstring path) {
-    const char* _path = env->GetStringUTFChars(path, 0);
-    if (videoDecoder == nullptr) {
-        if (callJava == nullptr) {
-            callJava = new CallJava(javaVm, env, &thiz);
+    jboolean isCopy;
+    const char* path_c = env->GetStringUTFChars(path, &isCopy);
+    if (path_c != nullptr) {
+        if (videoDecoder == nullptr) {
+            if (callJava == nullptr) {
+                callJava = new CallJava(javaVm, env, &thiz);
+            }
+            videoDecoder = new VideoDecoder(callJava, path_c);
+            videoDecoder->prepared();
+        } else if (videoDecoder2 == nullptr) {
+            if (callJava2 == nullptr) {
+                callJava2 = new CallJava(javaVm, env, &thiz);
+            }
+            videoDecoder2 = new VideoDecoder(callJava2, path_c);
+            videoDecoder2->prepared();
         }
-        videoDecoder = new VideoDecoder(callJava, _path);
-        videoDecoder->prepared();
+        env->ReleaseStringUTFChars(path, path_c);
     }
-}extern "C"
+}
+
+extern "C"
 JNIEXPORT void JNICALL
 Java_com_eutroeye_csbox_player_VideoPlayer_n_1start(JNIEnv *env, jobject thiz) {
-    if (videoDecoder != nullptr) {
+    if (videoDecoder != nullptr && !isVD1Begin) {
         videoDecoder->start();
+        isVD1Begin = true;
+    } else if (videoDecoder2 != nullptr) {
+        videoDecoder2->start();
     }
 }

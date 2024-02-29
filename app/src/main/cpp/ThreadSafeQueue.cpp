@@ -7,7 +7,6 @@ ThreadSafeQueue::ThreadSafeQueue() {
     pthread_cond_init(&condPacket, NULL);
 
 }
-
 ThreadSafeQueue::~ThreadSafeQueue() {
     clearAvpacket();
 }
