@@ -105,37 +105,37 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        videoPlayer = new VideoPlayer("rtsp://admin:Hik12345@192.168.1.83:554/h264/ch1/main/av_stream");
-        videoPlayer2 = new VideoPlayer("rtsp://admin:Hik12345@192.168.1.82:554/h264/ch1/main/av_stream");
+        videoPlayer = new VideoPlayer("rtsp://admin:Hik12345@192.168.1.83:554/h264/ch1/main/av_stream", true);
+        videoPlayer2 = new VideoPlayer("rtsp://admin:Hik12345@192.168.1.82:554/h264/ch1/main/av_stream", true);
         checkPermission();
 //        MediaCodec mediaCodec= MediaCodec.createByCodecName("video/avc");
 //        mediaCodec.start();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-                ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
-                activityManager.getMemoryInfo(memoryInfo);
-
-                long totalMemory = memoryInfo.totalMem;
-                long availableMemory = memoryInfo.availMem;
-
-// 将字节转换为可读的格式
-                String totalMemoryStr = Formatter.formatFileSize(context, totalMemory);
-                String availableMemoryStr = Formatter.formatFileSize(context, availableMemory);
-
-
-                while (true) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-//                    Log.d("Memory", "Total Memory: " + totalMemoryStr);
-                    Log.d("Memory", "Available Memory: " + availableMemoryStr);
-                }
-            }
-        }).start();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+//                ActivityManager.MemoryInfo memoryInfo = new ActivityManager.MemoryInfo();
+//                activityManager.getMemoryInfo(memoryInfo);
+//
+//                long totalMemory = memoryInfo.totalMem;
+//                long availableMemory = memoryInfo.availMem;
+//
+//// 将字节转换为可读的格式
+//                String totalMemoryStr = Formatter.formatFileSize(context, totalMemory);
+//                String availableMemoryStr = Formatter.formatFileSize(context, availableMemory);
+//
+//
+//                while (true) {
+//                    try {
+//                        Thread.sleep(1000);
+//                    } catch (InterruptedException e) {
+//                        e.printStackTrace();
+//                    }
+////                    Log.d("Memory", "Total Memory: " + totalMemoryStr);
+//                    Log.d("Memory", "Available Memory: " + availableMemoryStr);
+//                }
+//            }
+//        }).start();
         surfaceView = (SurfaceView) findViewById(R.id.surface);
         exit = findViewById(R.id.exit);
         final SurfaceHolder surfaceViewHolder = surfaceView.getHolder();

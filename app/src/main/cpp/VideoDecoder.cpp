@@ -3,6 +3,7 @@
 //
 
 #include "VideoDecoder.h"
+#include "utils/CallJava.h"
 
 #include <thread>
 #include <android/native_window_jni.h>
@@ -11,19 +12,19 @@
 #include <mutex>
 
 std::mutex mutex;
-enum AVPixelFormat (*swtt)(struct AVCodecContext *s, const enum AVPixelFormat *fmt);
+//enum AVPixelFormat (*swtt)(struct AVCodecContext *s, const enum AVPixelFormat *fmt);
 
-AVPixelFormat VideoDecoder::get_hw_format(AVCodecContext *ctx,
-                                          const enum AVPixelFormat *pix_fmts) {
-    const enum AVPixelFormat *p;
-
-    for (p = pix_fmts; *p != -1; p++) {
-        if (*p == hw_pix_fmt)
-            return *p;
-    }
-    LOGD("FFDecoder Failed to get HW surface format.\n");
-    return AV_PIX_FMT_NONE;
-}
+//AVPixelFormat VideoDecoder::get_hw_format(AVCodecContext *ctx,
+//                                          const enum AVPixelFormat *pix_fmts) {
+//    const enum AVPixelFormat *p;
+//
+//    for (p = pix_fmts; *p != -1; p++) {
+//        if (*p == hw_pix_fmt)
+//            return *p;
+//    }
+//    LOGD("FFDecoder Failed to get HW surface format.\n");
+//    return AV_PIX_FMT_NONE;
+//}
 void VideoDecoder::statistic_fps() {
     while (!exit) {
         LOGD("fps: %d", fps_count);
@@ -138,9 +139,9 @@ void VideoDecoder::initVideoDecoder() {
 //    }
     avCodecContext = avcodec_alloc_context3(avCodec);
     avcodec_parameters_to_context(avCodecContext, avCodecParameters);
-    std::function<AVPixelFormat(AVCodecContext *ctx,
-                                const enum AVPixelFormat *pix_fmts)> func = std::bind(
-            &VideoDecoder::get_hw_format, this, std::placeholders::_1, std::placeholders::_2);
+//    std::function<AVPixelFormat(AVCodecContext *ctx,
+//                                const enum AVPixelFormat *pix_fmts)> func = std::bind(
+//            &VideoDecoder::get_hw_format, this, std::placeholders::_1, std::placeholders::_2);
 //    swtt = *func.target<enum AVPixelFormat (*)(struct AVCodecContext *s,const enum AVPixelFormat *fmt)>();
 //    const enum AVPixelFormat tmp = AV_PIX_FMT_YUV420P;
 //    swtt(avCodecContext, &tmp);
@@ -174,7 +175,7 @@ void VideoDecoder::initVideoDecoder() {
         LOGD("FFDecoder 解码器打开成功");
     }
     testSize = avCodecParameters->height;
-    callJava->onCallPrepared(CHILD_THREAD, decoderName, avCodecParameters->width, avCodecParameters->height);
+    callJava->onCallPrepared(CHILD_THREAD, decoderName, avCodecParameters->width, avCodecParameters->height, this);
 }
 
 void VideoDecoder::prepared() {
@@ -187,7 +188,7 @@ VideoDecoder::VideoDecoder(CallJava *callJava, const char *url) {
     this->url = url;
     this->avCodecContext = NULL;
     this->avFormatContext = NULL;
-    this->nativeWindow = NULL;
+//    this->nativeWindow = NULL;
     queue = new ThreadSafeQueue();
     buf = nullptr;
 //    pYUV_file = fopen("/sdcard/1.yuv", "ab");
@@ -317,6 +318,7 @@ VideoDecoder::~VideoDecoder() {
 }
 
 int VideoDecoder::callNALU(AVPacket *avPacket) {
-    callJava->onCallNALU(testSize, avPacket->data);
+    // 坑死我了 这里是avpacket的大小
+    callJava->onCallNALU(avPacket->size, avPacket->data);
     return 0;
 }

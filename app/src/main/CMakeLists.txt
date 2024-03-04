@@ -5,6 +5,7 @@ cmake_minimum_required(VERSION 3.10)
 # 引入FFmpeg的头文件
 include_directories(${CMAKE_SOURCE_DIR}/cpp/ffmpeg_include)
 include_directories(${CMAKE_SOURCE_DIR}/cpp/yuv_include)
+include_directories(${CMAKE_SOURCE_DIR}/cpp)
 get_filename_component(PARENT_DIR ${CMAKE_SOURCE_DIR} DIRECTORY)
 get_filename_component(PARENT_DIR1 ${PARENT_DIR} DIRECTORY)
 # 动态链接库或静态链接库的搜索路径
@@ -44,5 +45,5 @@ target_link_libraries( #目标库
         # NDK中的log库
         log )
 
-target_compile_options(ffmpegDecode PUBLIC -fsanitize=address -fno-omit-frame-pointer)
-set_target_properties(ffmpegDecode PROPERTIES LINK_FLAGS -fsanitize=address)
+#target_compile_options(ffmpegDecode PUBLIC -fsanitize=address -fno-omit-frame-pointer)
+#set_target_properties(ffmpegDecode PROPERTIES LINK_FLAGS -fsanitize=address)

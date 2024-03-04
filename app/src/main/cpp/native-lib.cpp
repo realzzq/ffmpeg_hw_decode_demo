@@ -6,6 +6,7 @@
 #include <mutex>
 #include <deque>
 #include <memory>
+#include "VideoDecoder.h"
 
 
 extern "C"
@@ -24,10 +25,10 @@ extern "C"
 #include "utils/CallJava.h"
 
 bool isVD1Begin = false;
-VideoDecoder *videoDecoder = nullptr;
-VideoDecoder *videoDecoder2 = nullptr;
-CallJava* callJava = nullptr;
-CallJava* callJava2 = nullptr;
+//VideoDecoder *videoDecoder = nullptr;
+//VideoDecoder *videoDecoder2 = nullptr;
+//CallJava* callJava = nullptr;
+//CallJava* callJava2 = nullptr;
 _JavaVM* javaVm = nullptr;
 _JavaVM* javaVm2 = nullptr;
 
@@ -351,30 +352,35 @@ Java_com_eutroeye_csbox_player_VideoPlayer_n_1prepared(JNIEnv *env, jobject thiz
     jboolean isCopy;
     const char* path_c = env->GetStringUTFChars(path, &isCopy);
     if (path_c != nullptr) {
-        if (videoDecoder == nullptr) {
-            if (callJava == nullptr) {
-                callJava = new CallJava(javaVm, env, &thiz);
-            }
-            videoDecoder = new VideoDecoder(callJava, path_c);
-            videoDecoder->prepared();
-        } else if (videoDecoder2 == nullptr) {
-            if (callJava2 == nullptr) {
-                callJava2 = new CallJava(javaVm, env, &thiz);
-            }
-            videoDecoder2 = new VideoDecoder(callJava2, path_c);
-            videoDecoder2->prepared();
-        }
+        CallJava* callJava = new CallJava(javaVm, env, &thiz);
+        VideoDecoder* videoDecoder = new VideoDecoder(callJava, path_c);
+        videoDecoder->prepared();
+//        if (videoDecoder == nullptr) {
+//            if (callJava == nullptr) {
+//                callJava = new CallJava(javaVm, env, &thiz);
+//            }
+//            videoDecoder = new VideoDecoder(callJava, path_c);
+//            videoDecoder->prepared();
+//        } else if (videoDecoder2 == nullptr) {
+//            if (callJava2 == nullptr) {
+//                callJava2 = new CallJava(javaVm, env, &thiz);
+//            }
+//            videoDecoder2 = new VideoDecoder(callJava2, path_c);
+//            videoDecoder2->prepared();
+//        }
         env->ReleaseStringUTFChars(path, path_c);
     }
 }
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_com_eutroeye_csbox_player_VideoPlayer_n_1start(JNIEnv *env, jobject thiz) {
-    if (videoDecoder != nullptr && !isVD1Begin) {
+Java_com_eutroeye_csbox_player_VideoPlayer_n_1start(JNIEnv *env, jobject thiz,
+                                                    jlong p_video_decoder) {
+    // TODO: implement n_start()
+    auto* videoDecoder = reinterpret_cast<VideoDecoder *>(p_video_decoder);
+    if (videoDecoder != nullptr) {
+        LOGD("testSize是%d", videoDecoder->testSize);
         videoDecoder->start();
-        isVD1Begin = true;
-    } else if (videoDecoder2 != nullptr) {
-        videoDecoder2->start();
     }
+
 }

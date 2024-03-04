@@ -2,6 +2,7 @@
 #include <syslog.h>
 
 #include "CallJava.h"
+#include "VideoDecoder.h"
 #include "const.h"
 
 CallJava::CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj) {
@@ -18,14 +19,14 @@ CallJava::CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj) {
         return;
     }
 
-    jmid_parpared = env->GetMethodID(jlz, "onCallPrepared", "(Ljava/lang/String;II)V");
+    jmid_parpared = env->GetMethodID(jlz, "onCallPrepared", "(Ljava/lang/String;IIJ)V");
     jmid_renderyuv = env->GetMethodID(jlz, "onCallRenderYUV", "(II[B)V");
     jmid_getNALU = env->GetMethodID(jlz, "onGetNALU", "(I[B)V");
 //
 //    jmid_renderNV12 = env->GetMethodID(jlz, "onCallRenderNV12", "(II[B)V");
 }
 
-void CallJava::onCallPrepared(int type, std::string mime_type, int width, int height) {
+void CallJava::onCallPrepared(int type, std::string mime_type, int width, int height, VideoDecoder* videoDecoder) {
 
 
     if(type == MAIN_THREAD)
@@ -45,7 +46,7 @@ void CallJava::onCallPrepared(int type, std::string mime_type, int width, int he
             return;
         }
         jstring j_mime_type = jniEnv->NewStringUTF(mime_type.c_str());
-        jniEnv->CallVoidMethod(jobj, jmid_parpared, j_mime_type, width, height);
+        jniEnv->CallVoidMethod(jobj, jmid_parpared, j_mime_type, width, height, videoDecoder);
         javaVM->DetachCurrentThread();
     }
 

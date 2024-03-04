@@ -9,7 +9,6 @@
 #include <mutex>
 #include <android/native_window.h>
 #include "utils/const.h"
-#include "utils/CallJava.h"
 #include "ThreadSafeQueue.h"
 #include <string>
 
@@ -21,10 +20,14 @@ extern "C" {
 #include <libswscale/swscale.h>
 };
 
+class CallJava;
+
 class VideoDecoder {
 
-private:
+public:
     int testSize;
+private:
+
     bool exit = false;
     uint8_t *buf;
     int videoindex = -1;
@@ -36,8 +39,8 @@ private:
     AVPixelFormat hw_pix_fmt;
     AVFormatContext* avFormatContext;
     AVCodecContext* avCodecContext;
-    ANativeWindow* nativeWindow;
-    enum AVPixelFormat get_hw_format(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
+//    ANativeWindow* nativeWindow;
+//    enum AVPixelFormat get_hw_format(struct AVCodecContext *s, const enum AVPixelFormat * fmt);
 private:
     void statistic_fps();
     void initVideoDecoder();

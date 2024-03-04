@@ -2,14 +2,15 @@ package com.eutroeye.csbox.player;
 
 import android.text.TextUtils;
 import android.util.Log;
-import android.view.Surface;
 
 
 public class VideoPlayer {
 
+    long p_videoDecoder;
     private String path;
-
-    public VideoPlayer(String path) {
+    Boolean isDecode = false;
+    public VideoPlayer(String path, Boolean isDecode) {
+        this.isDecode = isDecode;
         this.path = path;
     }
 
@@ -26,14 +27,15 @@ public class VideoPlayer {
             return;
         }
         new Thread(new Runnable() {
-            @Override
-            public void run() {
-                n_start();
-            }
-        }).start();
+                @Override
+                public void run() {
+                    n_start(p_videoDecoder);
+                }
+            }).start();
+
     }
 
-    private native void n_start();
+    private native void n_start(long p_videoDecoder);
 
     public void prepared() {
         if (TextUtils.isEmpty(path)) {
@@ -48,9 +50,10 @@ public class VideoPlayer {
         }).start();
     }
 
-    public void onCallPrepared(String mime_type, int width, int height) {
+    public void onCallPrepared(String mime_type, int width, int height, long p_videoDecoder) {
         if (this.codecedOutListener != null) {
-            System.out.println("ffmpeg准备成功, width: " + width);
+            System.out.println("ffmpeg准备成功, width: " + width + p_videoDecoder);
+            this.p_videoDecoder = p_videoDecoder;
             this.start();
         }
     }

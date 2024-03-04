@@ -4,12 +4,14 @@
 
 #include "jni.h"
 #include <linux/stddef.h>
+
 #include <string>
 
 
 #define MAIN_THREAD 0
 #define CHILD_THREAD 1
 
+class VideoDecoder;
 
 class CallJava {
 
@@ -29,7 +31,7 @@ public:
     CallJava(_JavaVM *javaVM, JNIEnv *env, jobject *obj);
     ~CallJava();
 
-    void onCallPrepared(int type, std::string mime_type, int width, int height);
+    void onCallPrepared(int type, std::string mime_type, int width, int height, VideoDecoder* videoDecoder);
     void onCallTimeInfo(int type, int curr, int total);
     void onCallLoad(int type, bool load);
     void onCallRenderYUV(int width, int height, uint8_t *nv12);
